@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[packages]
+transformers = "==4.41.1"
+datasets = "*"
+peft = "*"
+accelerate = "*"
+bitsandbytes = "*"
+wandb = "*"
+scipy = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9" 
