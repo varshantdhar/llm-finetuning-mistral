@@ -3,14 +3,12 @@ from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, Trainer, DataCollatorForLanguageModeling
 from peft import get_peft_model, LoraConfig, TaskType
 from scripts.pissa_utils import apply_pissa_to_model
+from scripts.config import Config
 
 import os
 
-# Load the instruction dataset from HuggingFace
-# Using Guanaco dataset which contains instruction-response pairs
-dataset = load_dataset("mlabonne/guanaco-llama2-1k")["train"]
-# Toggle to enable PiSSA adapter initialization
-use_pissa = True
+# Instantiate config
+config = Config()
 
 def format_prompt(example):
     """
@@ -26,11 +24,17 @@ def format_prompt(example):
         "text": f"### Instruction:\n{example['instruction']}\n\n### Response:\n{example['output']}"
     }
 
+# Load the instruction dataset from HuggingFace
+# Using Guanaco dataset which contains instruction-response pairs
+dataset = load_dataset(config.dataset_name)["train"]
+# Toggle to enable PiSSA adapter initialization
+use_pissa = config.use_pissa
+
 # Apply prompt formatting to the entire dataset
 dataset = dataset.map(format_prompt)
 
 # Load the Mistral-7B-Instruct-v0.2 model and tokenizer
-model_id = "mistralai/Mistral-7B-Instruct-v0.2"
+model_id = config.model_id
 
 # Load tokenizer with fast tokenizer for better performance
 tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
@@ -47,13 +51,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 # Configure LoRA (Low-Rank Adaptation) for efficient fine-tuning
-peft_config = LoraConfig(
-    r=8,  # Rank of the LoRA matrices (higher = more parameters, better performance)
-    lora_alpha=32,  # Scaling factor for LoRA weights
-    task_type=TaskType.CAUSAL_LM,  # Task type for causal language modeling
-    lora_dropout=0.1,  # Dropout rate for LoRA layers
-    bias="none"  # Don't train bias terms
-)
+peft_config = config.lora_config
 
 # Apply LoRA configuration to the model
 model = get_peft_model(model, peft_config)
@@ -79,7 +77,7 @@ def tokenize(example):
         example["text"],
         truncation=True,
         padding="max_length",
-        max_length=512
+        max_length=config.max_seq_length
     )
     # For language modeling, labels are the same as input_ids
     result["labels"] = result["input_ids"].copy()
@@ -90,16 +88,16 @@ tokenized_dataset = dataset.map(tokenize, batched=True)
 
 # Configure training arguments
 args = TrainingArguments(
-    output_dir="checkpoints",
-    per_device_train_batch_size=1,
-    gradient_accumulation_steps=8,
-    num_train_epochs=3,
-    logging_dir="logs",
-    logging_steps=10,
-    save_steps=100,
-    learning_rate=2e-4,
-    fp16=True,
-    report_to="wandb",
+    output_dir=config.output_dir,
+    per_device_train_batch_size=config.per_device_train_batch_size,
+    gradient_accumulation_steps=config.gradient_accumulation_steps,
+    num_train_epochs=config.num_train_epochs,
+    logging_dir=config.logging_dir,
+    logging_steps=config.logging_steps,
+    save_steps=config.save_steps,
+    learning_rate=config.learning_rate,
+    fp16=config.use_fp16,
+    report_to=config.report_to,
 )
 
 # Initialize the trainer with model, data, and configuration
@@ -113,7 +111,7 @@ trainer = Trainer(
 
 trainer.train()
 
-output_dir = f"checkpoints/mistral-guanaco-lora-pissa-{use_pissa}"
+output_dir = config.output_dir
 
 # Save the model and tokenizer
 model.save_pretrained(output_dir)
