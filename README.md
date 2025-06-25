@@ -31,21 +31,47 @@ pipenv shell
 
 ## Training
 
-Train with LoRA (random init):
+Train with LoRA (random init) or PiSSA (SVD) initialization:
 
 ```bash
-python train.py
+python scripts/train.py
 ```
 
-Train with PiSSA initialization:
-
-```python
-# Inside train.py
-use_pissa = True
-```
+All training, model, and dataset parameters are now managed via the `Config` class in `scripts/config.py`.
 
 > Model checkpoints are saved to `checkpoints/mistral-guanaco-lora-pissa-{True|False}`.
 
+## Configuration
+
+All configuration is centralized in `scripts/config.py` using the `Config` class. You can change model, dataset, LoRA, and training parameters by editing this file.
+
+Example (to toggle PiSSA or change LoRA rank):
+
+```python
+# scripts/config.py
+from peft import LoraConfig, TaskType
+
+class Config:
+    def __init__(self):
+        self.model_id = "mistralai/Mistral-7B-Instruct-v0.2"
+        self.use_pissa = True  # Set to False for random LoRA init
+        self.lora_config = LoraConfig(
+            r=8,  # Change LoRA rank here
+            lora_alpha=32,
+            task_type=TaskType.CAUSAL_LM,
+            lora_dropout=0.1,
+            bias="none"
+        )
+        # ... other config ...
+```
+
+You can also subclass `Config` for advanced use cases or override attributes at runtime in `train.py`:
+
+```python
+from scripts.config import Config
+config = Config()
+config.use_pissa = False  # Override PiSSA at runtime
+```
 
 ## Project Structure
 
@@ -72,7 +98,7 @@ PiSSA (Principal Singular Spectrum Alignment) uses SVD to extract structure from
 - Reduce quantization error by aligning activations  
 - Require no additional training time  
 
-> Toggle `use_pissa = True` in `train.py` to enable.
+> Toggle `use_pissa` in `scripts/config.py` to enable or disable PiSSA.
 
 
 ## Scaling Tips
