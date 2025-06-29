@@ -1,4 +1,4 @@
-# 🧠 LLM Fine-Tuning with Mistral + LoRA + PiSSA
+# LLM Fine-Tuning with Mistral + LoRA + PiSSA
 
 Fine-tune a 4-bit quantized [`Mistral-7B-Instruct-v0.2`](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) model on instruction-tuned datasets using [LoRA](https://arxiv.org/abs/2106.09685), with optional [PiSSA](https://arxiv.org/abs/2404.19753) initialization for improved low-rank adapter performance.
 
