@@ -112,8 +112,6 @@ PiSSA (Principal Singular Spectrum Alignment) uses SVD to extract structure from
 
 
 
-## To Do
-
 ## Inference
 
 Run from saved adapter:
@@ -123,6 +121,8 @@ python inference/generate.py
 ```
 
 You'll be prompted to enter an instruction and receive a response.
+
+## To Do
 
 
 ## Evaluation
