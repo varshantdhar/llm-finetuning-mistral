@@ -122,6 +122,24 @@ python inference/generate.py
 
 You'll be prompted to enter an instruction and receive a response.
 
+### Optimizing Inference with merge_and_unload()
+
+This project uses parameter-efficient fine-tuning (PEFT) via LoRA and PiSSA. After training, we optimize inference by calling:
+
+```python
+model.merge_and_unload()
+```
+
+This merges the adapter weights ($ΔW$) into the base model’s weights ($W$), eliminating the need for LoRA modules during inference and adapter overhead. 
+
+✅ Benefits:
+- Removes extra computation from low-rank adapters, allows for fewer parameters in memory.
+- Reduces latency and VRAM usage at inference time
+- Enables exporting to formats like ONNX or gguf for deployment
+- Produces a standalone model (AutoModelForCausalLM) with no PEFT dependencies
+
+This is especially useful for real-world use cases where quantized models are deployed in production settings.
+
 ## To Do
 
 

@@ -33,3 +33,18 @@ class Config:
         # WandB / logging
         self.report_to = "wandb"
         self.wandb_project = "mistral-lora-pissa"
+
+class EvalConfig:
+    base_model = "mistralai/Mistral-7B-Instruct-v0.2"
+    adapter_path = "checkpoints"
+    use_pissa = False
+    pissa_r = 8
+
+    eval_prompts = [
+        "### Instruction:\nWhat is the capital of France?\n\n### Response:",
+        "### Instruction:\nExplain backpropagation in neural networks.\n\n### Response:"
+    ]
+
+    max_new_tokens = 128
+    top_p = 0.9
+    temperature = 0.7
